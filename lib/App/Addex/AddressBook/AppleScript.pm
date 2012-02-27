@@ -1,9 +1,9 @@
-use 5.10.0;
+use 5.10.1;
 use strict;
 use warnings;
 package App::Addex::AddressBook::AppleScript;
-BEGIN {
-  $App::Addex::AddressBook::AppleScript::VERSION = '0.002';
+{
+  $App::Addex::AddressBook::AppleScript::VERSION = '0.003';
 }
 use base qw(App::Addex::AddressBook);
 # ABSTRACT: Mac::Glue-less Addex adapter for Apple Address Book and Addex
@@ -131,10 +131,22 @@ sub entries {
 sub _entrify {
   my ($self, $person) = @_;
 
+  my %fields;
+  if (my $note = $person->{note} // '') {
+    my @lines = grep { length } split /\R/, $note;
+    for my $line (@lines) {
+      warn("bogus line in notes: $line\n"), next
+        unless $line =~ /\A([^:]+):\s*(.+?)\Z/;
+      $fields{$1} = $2;
+    }
+  }
+
   my $fname   = $person->{'first name'}  // '';
   my $mname   = $person->{'middle name'}  // '';
   my $lname   = $person->{'last name'}  // '';
   my $suffix  = $person->{suffix} // '';
+
+  $mname = '' unless $fields{'use middle'} // 1;
 
   my $name = $fname
            . (length $mname  ? " $mname"  : '')
@@ -149,13 +161,6 @@ sub _entrify {
       address => $kv[ $i + 1 ],
       label   => $kv[ $i ],
     });
-  }
-
-  my %fields;
-  if (my $note = ($person->{note} // '')) {
-    while ($note =~ /^(\S+):\s*([^\x20\t]+)$/mg) {
-      $fields{$1} = $2;
-    }
   }
 
   my $arg = {
@@ -179,7 +184,7 @@ App::Addex::AddressBook::AppleScript - Mac::Glue-less Addex adapter for Apple Ad
 
 =head1 VERSION
 
-version 0.002
+version 0.003
 
 =head1 SYNOPSIS
 

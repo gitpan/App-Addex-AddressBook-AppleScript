@@ -1,5 +1,11 @@
 Revision history for App-Addex-AddressBook-AppleScript
 
+0.003     2012-02-27 13:19:20 America/New_York
+          change how notes fields are processed
+
+          add a "use middle" field; if set and false, the person's middle name
+          is not used
+
 0.002     2010-12-07 09:08:02 America/New_York
           explicitly state perl 5.10 requirement
 
