@@ -3,7 +3,7 @@ use strict;
 use warnings;
 package App::Addex::AddressBook::AppleScript;
 {
-  $App::Addex::AddressBook::AppleScript::VERSION = '0.004';
+  $App::Addex::AddressBook::AppleScript::VERSION = '0.005';
 }
 use base qw(App::Addex::AddressBook);
 # ABSTRACT: Mac::Glue-less Addex adapter for Apple Address Book and Addex
@@ -17,6 +17,8 @@ use File::Temp ();
 
 sub _produce_applescript {
   my @fields = (
+    'company', # true / false
+    'organization',
     'first name',
     'middle name',
     'last name',
@@ -148,10 +150,20 @@ sub _entrify {
 
   $mname = '' unless $fields{'use middle'} // 1;
 
-  my $name = $fname
-           . (length $mname  ? " $mname"  : '')
-           . (length $lname  ? " $lname"  : '')
-           . (length $suffix ? " $suffix" : '');
+  my $name;
+  if ($person->{company} eq 'true') {
+    $name = $person->{organization};
+  } else {
+    $name = $fname
+          . (length $mname  ? " $mname"  : '')
+          . (length $lname  ? " $lname"  : '')
+          . (length $suffix ? " $suffix" : '');
+  }
+
+  unless (length $name) {
+    warn "couldn't figure out a name for this entry\n";
+    return;
+  }
 
   my @emails;
   my @kv = @{ $person->{emails} };
@@ -206,7 +218,7 @@ App::Addex::AddressBook::AppleScript - Mac::Glue-less Addex adapter for Apple Ad
 
 =head1 VERSION
 
-version 0.004
+version 0.005
 
 =head1 SYNOPSIS
 
