@@ -3,7 +3,7 @@ use strict;
 use warnings;
 package App::Addex::AddressBook::AppleScript;
 {
-  $App::Addex::AddressBook::AppleScript::VERSION = '0.006';
+  $App::Addex::AddressBook::AppleScript::VERSION = '0.007';
 }
 use base qw(App::Addex::AddressBook);
 # ABSTRACT: Mac::Glue-less Addex adapter for Apple Address Book and Addex
@@ -218,7 +218,7 @@ App::Addex::AddressBook::AppleScript - Mac::Glue-less Addex adapter for Apple Ad
 
 =head1 VERSION
 
-version 0.006
+version 0.007
 
 =head1 SYNOPSIS
 
