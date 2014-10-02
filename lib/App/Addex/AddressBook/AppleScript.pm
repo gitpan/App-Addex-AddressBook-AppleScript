@@ -1,13 +1,28 @@
-use 5.10.1;
+use 5.20.0;
 use strict;
 use warnings;
 package App::Addex::AddressBook::AppleScript;
-{
-  $App::Addex::AddressBook::AppleScript::VERSION = '0.007';
-}
-use base qw(App::Addex::AddressBook);
+$App::Addex::AddressBook::AppleScript::VERSION = '0.008';
+use parent qw(App::Addex::AddressBook);
+use experimental 'postderef';
 # ABSTRACT: Mac::Glue-less Addex adapter for Apple Address Book and Addex
 
+#pod =head1 SYNOPSIS
+#pod
+#pod This module implements the L<App::Addex::AddressBook> interface for Mac OS X's
+#pod Address Book application, using I<a horrible hack> to get entries from the
+#pod address book.
+#pod
+#pod A much cleaner interface would be to use L<App::Addex::AddressBook::Apple>,
+#pod which uses L<Mac::Glue> to access the address book.  Unfortunately, Mac::Glue
+#pod does not work in many recent builds of Perl, and will cease to work as the
+#pod Carbon API is killed off.
+#pod
+#pod The AppleScript adapter builds an AppleScript program that prints out a dump of
+#pod relevant address book entries, then runs it, then parses its output.  The
+#pod format of the intermediate form may change for all kinds of crazy reasons.
+#pod
+#pod =cut
 
 use App::Addex::Entry;
 use App::Addex::Entry::EmailAddress;
@@ -137,7 +152,13 @@ sub _entrify {
   if (my $note = $person->{note} // '') {
     my @lines = grep { length } split /\R/, $note;
     for my $line (@lines) {
-      warn("bogus line in notes: $line\n"), next
+      next if $line =~ /^--/; # comment
+
+      my $tmpname
+        = join q{ }, grep $_,
+          $person->@{'first name', 'middle name', 'last name', 'suffix'};
+
+      warn("bogus line in notes on $tmpname: $line\n"), next
         unless $line =~ /\A([^:]+):\s*(.+?)\Z/;
       $fields{$1} = $2;
     }
@@ -212,13 +233,15 @@ __END__
 
 =pod
 
+=encoding UTF-8
+
 =head1 NAME
 
 App::Addex::AddressBook::AppleScript - Mac::Glue-less Addex adapter for Apple Address Book and Addex
 
 =head1 VERSION
 
-version 0.007
+version 0.008
 
 =head1 SYNOPSIS
 
